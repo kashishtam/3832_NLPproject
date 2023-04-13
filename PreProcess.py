@@ -35,17 +35,9 @@ class PreProcess:
         return preprocessed_text
     
     def clean_text(self,text):
-        #Define a regular expression to match emojis and the shruggie
-        emoji_pattern = re.compile("["
-                                u"\U0001F600-\U0001F64F"  # emoticons
-                                u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-                                u"\U0001F680-\U0001F6FF"  # transport & map symbols
-                                u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
-                                u"\u00a9-\u1f1ff"        # miscellaneous symbols and flags
-                                "]+", flags=re.UNICODE)
-
-        # Remove emojis and the shruggie from the text
-        text = emoji_pattern.sub(r'', text)
+        # Code snippet from https://github.com/AbdelkaderMH/iSarcasmEval/blob/main/preprocessing.py
+        # Remove shruggie from the text
+        # text = emoji_pattern.sub(r'', text)
         text = re.sub(r'(?:@[\w_]+)', "", text)
         text = re.sub(r'http[s]?://(?:[a-z]|[0-9]|[$-_@.&amp;+]|[!*\(\),]|(?:%[0-9a-f][0-9a-f]))+', "", text)
         text = text.replace('_', ' ')
