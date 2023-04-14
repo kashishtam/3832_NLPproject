@@ -1,48 +1,37 @@
-# only for testing purposes 
-
 from DataLoader import CSVReader_train
 from DataLoader import CSVReader_test
 from PreProcess import PreProcess
 
 from transformers import BertTokenizer
+from model import SarcasmDetector
 
-# Plan to convert to dataframe and use Pytorch's dataloader
-# Load training data
+import torch
+import torch.nn as nn
+
+from torch.utils.data import DataLoader
+
 training_data = CSVReader_train("train/train.EN.csv")
 training_data.read_file()
 
-# Load test data
-test_data = CSVReader_test("test/task_A_En_test.csv")
-test_data.read_file()
+# TODO: Preprocess data through PreProcess class
+processed_data = None  # placeholder
+# .....
 
-# Test print for sentence in test data
-test_text = test_data.get_sentence_column(1)
-print(test_text)
-assert(test_data.get_sarcastic_column(1) == '0')
+# TODO: tokenize and convert to numerical inputs
+# ....
 
-# Test print for sentence in training data
-text = training_data.get_sentence_column(4)
-print(text)
-assert(training_data.get_sarcastic_column(4) == '1')
+# creating Data loader
+dataLoader = DataLoader(processed_data, batch_size=32, shuffle=True)
 
-# Preprocessing the text
-process = PreProcess()
-processed_text = process.preprocess_text(text)
-processed_text = process.clean_text(processed_text)
-print(processed_text)
+# parameters
+input_dim = training_data.__len__()  # vocabulary size
+hidden_dim = 64
+output_dim = 2  # binary classification task (sarcasm or not)
 
-# Load the BERT tokenizer
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+# initializing model
+model = SarcasmDetector(input_dim, hidden_dim, output_dim)
+optimizer = torch.optim.Adam(model.parameters())
+criterion = nn.CrossEntropyLoss()
 
-# Tokenize the text
-tokens = tokenizer.tokenize(processed_text)
-
-# Convert the tokenized text into numerical inputs
-input_ids = tokenizer.convert_tokens_to_ids(tokens)
-
-# Print the tokenized text and numerical inputs
-print(f"Tokenized text: {tokens}")
-print(f"Numerical inputs: {input_ids}")
-
-
-
+# TODO: Training loop by iterating through data in batches
+# ....

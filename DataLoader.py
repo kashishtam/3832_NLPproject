@@ -1,6 +1,7 @@
 import csv
+from torch.utils.data import Dataset, DataLoader
 
-class CSVReader_train:
+class CSVReader_train(Dataset):
     def __init__(self, filename):
         self.filename = filename
         # create empty lists for each column in the CSV file
@@ -16,6 +17,14 @@ class CSVReader_train:
                 self.sentences.append(row[1])
                 self.sarcastic.append(row[2])
                 self.rephrases.append(row[3])
+    def __len__(self):
+        return len(self.sentences)
+
+    def __getitem__(self, idx):
+        text = self.sentences[idx]
+        label = self.sarcastic[idx]
+        return {'text': text, 'Sarcastic label': label}
+
     def get_sentence_column(self,idx):
         return self.sentences[idx]
     def get_rephrase_column(self,idx):
@@ -38,6 +47,10 @@ class CSVReader_test:
                 # append the value of each column to its corresponding list
                 self.sentences.append(row[0])
                 self.sarcastic.append(row[1])
+    def __getitem__(self, idx):
+        text = self.sentences[idx]
+        label = self.sarcastic[idx]
+        return {'text': text, 'Sarcastic label': label}
     def get_sentence_column(self,idx):
         return self.sentences[idx]
     def get_sarcastic_column(self,idx):
