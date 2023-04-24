@@ -32,6 +32,7 @@ num_epochs = 3
 for epoch in range(num_epochs):
     print('### Epoch: ' + str(epoch + 1) + ' ###')
     running_loss = 0.0
+    model.train()
     for step, batch in enumerate(dataLoader):
         # Unpack the inputs and labels
         inputs, attention_mask, labels = batch
@@ -58,7 +59,7 @@ for epoch in range(num_epochs):
         running_loss += loss.item()
 
         if step % print_frequency == (print_frequency - 1):
-            print(f'Epoch: {epoch + 1}, Batch: {step}, Loss: {running_loss}')
+            print(f'Epoch: {epoch + 1}, Batch: {step}, Loss: {running_loss/print_frequency}')
 
     # Print the epoch loss
     epoch_loss = running_loss / len(dataset)
