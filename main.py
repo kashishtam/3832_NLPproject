@@ -1,86 +1,52 @@
-import os, random, sys, matplotlib.pyplot as plt
-from DataLoader import SarcasmData, test_SarcasmData
+from DataLoader import SarcasmData
 from transformers import BertTokenizer, BertForSequenceClassification
 import torch
 import torch.nn as nn
-import utils
+import pandas as pd
 import training
-
+from sklearn.metrics import f1_score
 from torch.utils.data import DataLoader
+from sklearn.model_selection import train_test_split
 
+# Split training and validation data
+df = pd.read_csv('train/train.En.csv')
+train_data, val_data = train_test_split(df, test_size=0.2, random_state=42)
+# Save the datasets as CSV files
+train_data.to_csv('train/train_data.csv', index=False)
+val_data.to_csv('train/val_data.csv', index=False)
 
-# Load and clean training dataset
-dataset = SarcasmData("train/train.EN.csv")
-dataset.clean_text()
+# Load and clean train and valid dataset
+train_dataset = SarcasmData("train/train_data.csv")
+valid_dataset = SarcasmData('train/val_data.csv')
+
+# DataLoader
+train_dataLoader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+valid_dataLoader = DataLoader(valid_dataset, batch_size=16, shuffle=False)
 
 # Load and clean test dataset
-test_dataset = test_SarcasmData("test/task_A_En_test.csv")
+test_dataset = SarcasmData("test/task_A_En_test.csv")
 test_dataset.clean_text()
+test_dataLoader = DataLoader(test_dataset, batch_size=16, shuffle=False)
 
-# returns tensors of (tokenized_ids, attention_mask, sarcasm level)
-print(dataset[1])
-print(test_dataset[1])
-
-# softmax function
-softmax = nn.Softmax(dim=1)
-
-# creating Data loader
-dataLoader = DataLoader(dataset, batch_size=16, shuffle=True)
-
-# Load pretrained model
+# model
 model = BertForSequenceClassification.from_pretrained('bert-base-uncased')
 
-# Set up the loss function and optimizer
+# Set up the optimizer and the loss function
+optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5)
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=2e-5)
 
-# Set the device to use for training (e.g., GPU or CPU)
+# Device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model.to(device)
 
-print_frequency = 10
+# Train model
 num_epochs = 3
+training.train_model(model, num_epochs, train_dataLoader, valid_dataLoader, criterion, optimizer, device)
 
-# Not yet implemented(may not need)
-running_loss_list = []
+# Evaluate model on test set
+all_preds, f1 = training.evaluate_model(model, test_dataLoader, device)
+print(f'Test F1 Score: {f1:.4f}')
 
-training.train_model(model, num_epochs, dataLoader, criterion, optimizer, device)
-
-# Train the model
-# for epoch in range(num_epochs):
-#     print('### Epoch: ' + str(epoch + 1) + ' ###')
-
-#     running_loss = 0.0
-
-#     model.train()
-
-#     for step, batch in enumerate(dataLoader):
-#         # Unpack the inputs and labels
-#         inputs, attention_mask, labels = batch
-
-#         # move tensors to GPU take advantage of the parallel computing power of a GPU to speed up the training process.
-#         inputs, attention_mask, labels = inputs.to(device), attention_mask.to(device), labels.to(device)
-
-#         # Clear the gradients
-#         optimizer.zero_grad()
-
-#         # Forward pass
-#         outputs = model(inputs, attention_mask=attention_mask)[0]
-#         output_probs = softmax(outputs)
-
-#         # Compute the loss
-#         loss = criterion(output_probs.squeeze(1), labels)
-
-#         # Backward pass
-#         loss.backward()
-
-#         # Update the parameters
-#         optimizer.step()
-
-#         # Update the running loss
-#         running_loss += loss.item()
-
-#         if step % print_frequency == 1:
-#             print(f'Epoch: {epoch + 1}, Batch: {step}, Loss: {running_loss/print_frequency}')
-#             running_loss_list.append(running_loss)
-#             running_loss = 0
+# output file
+df = pd.read_csv('test/task_A_En_test.csv')
+df['sarcasm'] = all_preds
+df.to_csv('output.csv', index=False)
