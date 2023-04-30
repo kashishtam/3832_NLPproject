@@ -11,7 +11,12 @@ import os
 
 
 # Leave as '' to generate new model, otherwise fill in with name of model file to use
-model_to_load = 'best_model.pt'
+model_to_load = ''
+
+# Parameters
+num_batches = 32
+num_epochs = 3
+learning_rate = 2e-5
 
 # Split training and validation data
 df = pd.read_csv('train/train.En.csv')
@@ -25,19 +30,19 @@ train_dataset = SarcasmData("train/train_data.csv")
 valid_dataset = SarcasmData('train/val_data.csv')
 
 # DataLoader
-train_dataLoader = DataLoader(train_dataset, batch_size=8, shuffle=True)
-valid_dataLoader = DataLoader(valid_dataset, batch_size=8, shuffle=False)
+train_dataLoader = DataLoader(train_dataset, batch_size=num_batches, shuffle=True)
+valid_dataLoader = DataLoader(valid_dataset, batch_size=num_batches, shuffle=False)
 
 # Load and clean test dataset
 test_dataset = SarcasmData("test/task_A_En_test.csv")
 test_dataset.clean_text()
-test_dataLoader = DataLoader(test_dataset, batch_size=8, shuffle=False)
+test_dataLoader = DataLoader(test_dataset, batch_size=num_batches, shuffle=False)
 
 # model
 model = BertForSequenceClassification.from_pretrained('bert-base-uncased')
 
 # Set up the optimizer and the loss function
-optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5)
+optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 criterion = nn.CrossEntropyLoss()
 
 # Device
@@ -45,7 +50,6 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Train model
 if model_to_load == '':
-    num_epochs = 1
     training.train_model(model, num_epochs, train_dataLoader, valid_dataLoader, criterion, optimizer, device)
 else:
     model.load_state_dict(torch.load(model_to_load))

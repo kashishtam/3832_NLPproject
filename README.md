@@ -4,24 +4,23 @@ Team members: Brendan Lancaster, Kashish Tamrakar, Tyler Rayborn
 
 ## Project Description
 
-DataLoader.py: loads data for training and testing
+DataLoader.py: Loads data for training and testing
 
-PreProcess.py: preprocesses text and clean text to remove emojis
+PreProcess.py: Cleans text in the data to remove emojis and other symbols that would interfere with reading data before using in training or evaluation
 
-util.py : calculates relevant metrics for the dataset
+model.py : Contains our model and forward function
 
-model.py : contains our model and forward function
+main.py : Trains or loads models from start to finish, calculates f1 scores and output for test dataset, saves if best model
 
-main.py : runs everything from start to finish. However, parts are missing and are yet to be completed. They are commeneted with TODOs
+training.py: Contains code for training the model on the dataset and code for evaluating the f1 score of finished models
 
-test.py : testing for loading data, preprocessing data, tokenizing, and converting to numerical inputs
+## How to use
 
-## How to use (thus far)
-
-python test.py
+python main.py
 
 ## What it does
 
+The program takes the training (and validation) data, processes it and returns tokenized text and its numerical inputs that the model is then trained on. 
 Based on the input text, it returns a preprocessed text and then its tokenized text and then its numerical inputs
 
 ## What we needs to be done 
