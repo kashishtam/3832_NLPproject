@@ -7,6 +7,11 @@ import training
 from sklearn.metrics import f1_score
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
+import os
+
+
+# Leave as '' to generate new model, otherwise fill in with name of model file to use
+model_to_load = 'best_model.pt'
 
 # Split training and validation data
 df = pd.read_csv('train/train.En.csv')
@@ -20,13 +25,13 @@ train_dataset = SarcasmData("train/train_data.csv")
 valid_dataset = SarcasmData('train/val_data.csv')
 
 # DataLoader
-train_dataLoader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-valid_dataLoader = DataLoader(valid_dataset, batch_size=16, shuffle=False)
+train_dataLoader = DataLoader(train_dataset, batch_size=8, shuffle=True)
+valid_dataLoader = DataLoader(valid_dataset, batch_size=8, shuffle=False)
 
 # Load and clean test dataset
 test_dataset = SarcasmData("test/task_A_En_test.csv")
 test_dataset.clean_text()
-test_dataLoader = DataLoader(test_dataset, batch_size=16, shuffle=False)
+test_dataLoader = DataLoader(test_dataset, batch_size=8, shuffle=False)
 
 # model
 model = BertForSequenceClassification.from_pretrained('bert-base-uncased')
@@ -39,14 +44,37 @@ criterion = nn.CrossEntropyLoss()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Train model
-num_epochs = 3
-training.train_model(model, num_epochs, train_dataLoader, valid_dataLoader, criterion, optimizer, device)
+if model_to_load == '':
+    num_epochs = 1
+    training.train_model(model, num_epochs, train_dataLoader, valid_dataLoader, criterion, optimizer, device)
+else:
+    model.load_state_dict(torch.load(model_to_load))
+    model.eval()
 
 # Evaluate model on test set
 all_preds, f1 = training.evaluate_model(model, test_dataLoader, device)
 print(f'Test F1 Score: {f1:.4f}')
 
-# output file
+# Output file
 df = pd.read_csv('test/task_A_En_test.csv')
-df['sarcasm'] = all_preds
+df['sarcastic'] = all_preds
 df.to_csv('output.csv', index=False)
+
+# If current model is better than the best model, overwrite best model with it
+f = open('best_f1.txt', 'r')
+best_score = float(f.read())
+print(best_score)
+if(f1 > best_score):
+    print('\nPrevious best model had an f1 score of ' + str(f1) + '. Overwriting best model.')
+    os.remove("best_model.pt")
+    torch.save(model.state_dict, "best_model.pt")
+    f.close()
+    f = open('best_f1.txt', 'w')
+    f.seek(0)
+    f.truncate()
+    f.write(str(f1))
+# Optional save model
+inp = input('\nSave model to name? Y/N\n')
+if inp == 'Y':
+    inp = input('Save as:\n')
+    torch.save(model.state_dict(), inp + ".pt")
