@@ -70,7 +70,8 @@ best_score = float(f.read())
 print(best_score)
 if(f1 > best_score):
     print('\nPrevious best model had an f1 score of ' + str(f1) + '. Overwriting best model.')
-    os.remove("best_model.pt")
+    if os.path.isfile("best_model.pt"):
+        os.remove("best_model.pt")
     torch.save(model.state_dict, "best_model.pt")
     f.close()
     f = open('best_f1.txt', 'w')
