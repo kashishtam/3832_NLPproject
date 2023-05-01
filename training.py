@@ -1,7 +1,5 @@
 import torch
 import torch.nn as nn
-import numpy as np
-import os
 from sklearn.metrics import f1_score
 
 def checkpoint(model, filename):
@@ -13,7 +11,6 @@ def resume(model, filename):
 
 def train_model(model, num_epochs, train_dataloader, val_dataloader, criterion, optimizer, device):
     print_frequency = 10
-    softmax = nn.Softmax(dim=1)
 
     for epoch in range(num_epochs):
         print('### Epoch: ' + str(epoch + 1) + ' ###')
@@ -63,7 +60,7 @@ def train_model(model, num_epochs, train_dataloader, val_dataloader, criterion, 
         if(val_f1_score > best_score):
             checkpoint(model, 'models/best_model.pth')
             print('\nPrevious best model had an f1 score of ' + str(best_score) + '. Overwriting best model.')
-            f = open('model/best_f1.txt', 'w')
+            f = open('models/best_f1.txt', 'w')
             f.seek(0)
             f.truncate()
             f.write(str(val_f1_score))
@@ -71,7 +68,7 @@ def train_model(model, num_epochs, train_dataloader, val_dataloader, criterion, 
             f = open('models/best_epoch.txt', 'w')
             f.seek(0)
             f.truncate()
-            f.write(str(val_f1_score))
+            f.write(str(epoch + 1))
             f.close()
     resume(model, 'models/best_model.pth')
 

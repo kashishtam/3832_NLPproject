@@ -18,6 +18,8 @@ training.py: Contains code for training the model on the dataset and code for ev
 
 python main.py
 
+You will be prompted to either use the best checkpointed model(file must exist in models/best_model.pth) or train a new model. Enter 'Y' to use the best checkpointed model or 'N' to train a new model.
+
 ## What it does
 
 The program takes the training (and validation) data, processes it and returns tokenized text and its numerical inputs that the model is then trained on. 

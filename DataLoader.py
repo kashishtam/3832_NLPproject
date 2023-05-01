@@ -13,7 +13,6 @@ class SarcasmData(Dataset):
         self.df = self.df.dropna(subset=['text'])  # drop empty rows
         self.sentences = self.df['text'].tolist()  # sarcastic sentences
         self.labels = self.df['sarcastic'].tolist()  # 1 is sarcastic and 0 is non-sarcastic
-        print(self.df.head())
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
     def __len__(self):
@@ -36,6 +35,7 @@ class SarcasmData(Dataset):
         attention_mask = tokenized_text['attention_mask']
         return (input_ids.squeeze(0), attention_mask.squeeze(0), torch.tensor(label))
 
+    # Cleaning the text resulted in worse performance in our tests.
     def clean_text(self):
         preprocess = PreProcess()
         self.sentences = preprocess.clean_dataset(self.sentences, self.__len__())

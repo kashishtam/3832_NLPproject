@@ -2,16 +2,15 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
-
 import re
 
 
 # uncomment if not installed
 
-# nltk.download('omw-1.4')
-# nltk.download('stopwords')
-# nltk.download('punkt')
-# nltk.download('wordnet')
+nltk.download('omw-1.4')
+nltk.download('stopwords')
+nltk.download('punkt')
+nltk.download('wordnet')
 
 class PreProcess:
     def __init__(self):
@@ -38,8 +37,6 @@ class PreProcess:
 
     def clean_text(self, text):
         # Code snippet from https://github.com/AbdelkaderMH/iSarcasmEval/blob/main/preprocessing.py
-        # Remove shruggie from the text
-        # text = emoji_pattern.sub(r'', text)
         text = re.sub(r'(?:@[\w_]+)', "", text)
         text = re.sub(r'http[s]?://(?:[a-z]|[0-9]|[$-_@.&amp;+]|[!*\(\),]|(?:%[0-9a-f][0-9a-f]))+', "", text)
         text = text.replace('_', ' ')
