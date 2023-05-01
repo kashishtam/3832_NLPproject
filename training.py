@@ -1,7 +1,14 @@
 import torch
 import torch.nn as nn
 import numpy as np
+import os
 from sklearn.metrics import f1_score
+
+def checkpoint(model, filename):
+    torch.save(model.state_dict(), filename)
+    
+def resume(model, filename):
+    model.load_state_dict(torch.load(filename))
 
 
 def train_model(model, num_epochs, train_dataloader, val_dataloader, criterion, optimizer, device):
@@ -14,6 +21,11 @@ def train_model(model, num_epochs, train_dataloader, val_dataloader, criterion, 
         running_loss = 0.0
 
         model.train()
+        model.to(device)
+
+        f = open('models/best_f1.txt', 'r')
+        best_score = float(f.read())
+        f.close()
 
         for step, batch in enumerate(train_dataloader):
             # Unpack the inputs and labels
@@ -47,6 +59,21 @@ def train_model(model, num_epochs, train_dataloader, val_dataloader, criterion, 
         # Validate the model after each epoch
         _, val_f1_score = evaluate_model(model, val_dataloader, device)
         print(f'Validation F1 Score: {val_f1_score:.4f}')
+        # If current model is better than the best model, overwrite best model with it
+        if(val_f1_score > best_score):
+            checkpoint(model, 'models/best_model.pth')
+            print('\nPrevious best model had an f1 score of ' + str(best_score) + '. Overwriting best model.')
+            f = open('model/best_f1.txt', 'w')
+            f.seek(0)
+            f.truncate()
+            f.write(str(val_f1_score))
+            f.close()
+            f = open('models/best_epoch.txt', 'w')
+            f.seek(0)
+            f.truncate()
+            f.write(str(val_f1_score))
+            f.close()
+    resume(model, 'models/best_model.pth')
 
 
 def evaluate_model(model, test_dataLoader, device):

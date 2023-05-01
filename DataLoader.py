@@ -13,7 +13,7 @@ class SarcasmData(Dataset):
         self.df = self.df.dropna(subset=['text'])  # drop empty rows
         self.sentences = self.df['text'].tolist()  # sarcastic sentences
         self.labels = self.df['sarcastic'].tolist()  # 1 is sarcastic and 0 is non-sarcastic
-
+        print(self.df.head())
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
     def __len__(self):

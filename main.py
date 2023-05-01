@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import pandas as pd
 import training
+from training import resume
 from sklearn.metrics import f1_score
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
@@ -11,23 +12,26 @@ import os
 
 
 # Leave as '' to generate new model, otherwise fill in with name of model file to use
-model_to_load = ''
+# Best model is stored in ./models
+model_to_load = 'models/best_model.pth'
 
 # Parameters
-num_batches = 32
+num_batches = 16
 num_epochs = 3
 learning_rate = 2e-5
 
 # Split training and validation data
 df = pd.read_csv('train/train.En.csv')
-train_data, val_data = train_test_split(df, test_size=0.2, random_state=42)
+train_data, val_data = train_test_split(df, test_size=0.2, stratify=df['sarcastic'] ,random_state=42)
 # Save the datasets as CSV files
 train_data.to_csv('train/train_data.csv', index=False)
 val_data.to_csv('train/val_data.csv', index=False)
 
 # Load and clean train and valid dataset
 train_dataset = SarcasmData("train/train_data.csv")
+train_dataset.clean_text()
 valid_dataset = SarcasmData('train/val_data.csv')
+valid_dataset.clean_text()
 
 # DataLoader
 train_dataLoader = DataLoader(train_dataset, batch_size=num_batches, shuffle=True)
@@ -52,7 +56,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if model_to_load == '':
     training.train_model(model, num_epochs, train_dataLoader, valid_dataLoader, criterion, optimizer, device)
 else:
-    model.load_state_dict(torch.load(model_to_load))
+    resume(model, model_to_load)
+    model.to(device)
     model.eval()
 
 # Evaluate model on test set
@@ -63,23 +68,3 @@ print(f'Test F1 Score: {f1:.4f}')
 df = pd.read_csv('test/task_A_En_test.csv')
 df['sarcastic'] = all_preds
 df.to_csv('output.csv', index=False)
-
-# If current model is better than the best model, overwrite best model with it
-f = open('best_f1.txt', 'r')
-best_score = float(f.read())
-print(best_score)
-if(f1 > best_score):
-    print('\nPrevious best model had an f1 score of ' + str(f1) + '. Overwriting best model.')
-    if os.path.isfile("best_model.pt"):
-        os.remove("best_model.pt")
-    torch.save(model.state_dict, "best_model.pt")
-    f.close()
-    f = open('best_f1.txt', 'w')
-    f.seek(0)
-    f.truncate()
-    f.write(str(f1))
-# Optional save model
-inp = input('\nSave model to name? Y/N\n')
-if inp == 'Y':
-    inp = input('Save as:\n')
-    torch.save(model.state_dict(), inp + ".pt")
